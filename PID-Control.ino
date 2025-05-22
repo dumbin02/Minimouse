@@ -1,23 +1,23 @@
 // --- PID Configuration ---
 // Dual Wall Following PID Constants
 const double Kp = 0.1;  // P
-const double Kd = 0.1;   // D
+const double Kd = 0.2;   // D
 
 // Single Wall Following PID Constants
-const double KpSingle = 0.3;  // P
-const double KdSingle = 1.5;  // D
+const double KpSingle = 0.1;  // P
+const double KdSingle = 2;  // D
 
 // PID Control Parameters
 const double setpoint = 0;
-const double singleWallSetpoint = 650;  // Target distance from wall for single wall following
+const double singleWallSetpoint = 550;  // Target distance from wall for single wall following
 const double maxWallDistance = 700;     // Maximum acceptable distance from wall
-const double minWallDistance = 450;     // Minimum acceptable distance from wall
+const double minWallDistance = 350;     // Minimum acceptable distance from wall
 const double deadband = 5;     // Ignore small errors to prevent oscillations
 const double maxOutput = 200;  // Maximum PID output to prevent aggressive corrections
 
 // Single Wall Speed Constraints
-const int singleWallMinSpeed = 130;  // Minimum speed for single wall following
-const int singleWallMaxSpeed = 255;  // Maximum speed for single wall following
+const int singleWallMinSpeed = 160;  // Minimum speed for single wall following
+const int singleWallMaxSpeed = 235;  // Maximum speed for single wall following
 
 // --- PID Variables ---
 double pTerm = 0;

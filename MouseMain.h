@@ -4,6 +4,16 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 
+// --- Maze Dimensions and Properties ---
+#define MAZE_WIDTH 10
+#define MAZE_HEIGHT 10
+#define UNVISITED_DISTANCE 255
+
+// --- Maze State Arrays ---
+extern uint8_t horizontalWalls[MAZE_HEIGHT - 1][MAZE_WIDTH];
+extern uint8_t verticalWalls[MAZE_HEIGHT][MAZE_WIDTH - 1];
+extern uint8_t manhattanDistances[MAZE_HEIGHT][MAZE_WIDTH];
+
 // --- Maze Data Structures (moved from MazeState.ino for global access) ---
 struct MousePosition {
     int8_t x; // Typically column (0-9 for 10 wide maze)
@@ -38,7 +48,7 @@ extern const int ledPin;       // NeoPixel Data Pin
 
 // --- Motor Speed Control ---
 uint8_t baseSpeed = 235;  // Base motor speed 
-uint8_t minSpeed = 130;   // Minimum speed to prevent stalling 
+uint8_t minSpeed = 180;   // Minimum speed to prevent stalling 
 uint8_t maxSpeed = 255;     // Maximum speed
 extern const int singleWallMinSpeed;  // Minimum speed for single wall following
 extern const int singleWallMaxSpeed;  // Maximum speed for single wall following
@@ -53,6 +63,7 @@ extern const int timeTurnRightW;
 extern const int timeTurnLeftW;
 extern const unsigned long initialStepInterval;
 extern const unsigned long stepInterval;
+extern const unsigned long halfStepInterval;
 extern unsigned long previousTimeMS;
 extern unsigned long currentTimeMS;
 extern unsigned long lastSquareTime; // Added for global access
@@ -80,6 +91,7 @@ extern bool GlobalRightWall;
 // --- Maze State Global Variables (defined in MazeState.ino) ---
 extern MousePosition currentPosition; 
 extern MouseDirection currentDirection;
+extern uint8_t bestMoveDecision;
 
 // --- Maze Var ---
 // extern enum MouseDirection : uint8_t; // Removed as it's now defined above
@@ -111,7 +123,8 @@ void updateTiming();
 void updateGlobalWallFlagsFromSensors(); // New function
 
 // --- Function Declarations from FloodMove.ino ---
-void executeDecision();
+void executeDecision(int decision);
+void FloodMove_MainLogic();
 
 // --- Function Declarations from MazeState.ino (for simulation & general use) ---
 void initializeMazeAndMouse();

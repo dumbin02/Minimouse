@@ -176,83 +176,6 @@ MouseDirection getNextDirection(bool turnRight) {
     }
 }
 
-// --- Simulation Helper Functions ---
-void printManhattanDistances() {
-    Serial.println(F("Maze State (M=Mouse, Inf=Unvisited):"));
-    for (int8_t r = 0; r < MAZE_HEIGHT; r++) {
-        // Print cell row with values and vertical walls
-        for (int8_t c = 0; c < MAZE_WIDTH; c++) {
-            // Cell Content (Mouse or Distance)
-            if (r == currentPosition.y && c == currentPosition.x) {
-                Serial.print(F("M"));
-                switch (currentDirection) {
-                    case NORTH: Serial.print(F("^")); break;
-                    case EAST:  Serial.print(F(">")); break;
-                    case SOUTH: Serial.print(F("v")); break;
-                    case WEST:  Serial.print(F("<")); break;
-                }
-                Serial.print(F(" ")); // Pad to 3 chars, e.g., "M^ "
-            } else {
-                if (manhattanDistances[r][c] == UNVISITED_DISTANCE) {
-                    Serial.print(F("Inf"));
-                } else {
-                    if (manhattanDistances[r][c] < 10) {
-                        Serial.print(F(" ")); Serial.print(manhattanDistances[r][c]); Serial.print(F(" ")); // e.g., " 9 "
-                    } else if (manhattanDistances[r][c] < 100) {
-                        Serial.print(manhattanDistances[r][c]); Serial.print(F(" ")); // e.g., "10 "
-                    } else {
-                        Serial.print(manhattanDistances[r][c]); // e.g., "123"
-                    }
-                }
-            }
-
-            // Vertical Wall to the right (if not the last column)
-            if (c < MAZE_WIDTH - 1) {
-                if (verticalWalls[r][c] == 1) {
-                    Serial.print(F("|"));
-                } else {
-                    Serial.print(F(" ")); // Space if no vertical wall (acts as separator)
-                }
-            }
-        }
-        Serial.println(); // End of cell content row
-
-        // Print horizontal wall row (if not the last cell row)
-        if (r < MAZE_HEIGHT - 1) {
-            for (int8_t c = 0; c < MAZE_WIDTH; c++) {
-                if (horizontalWalls[r][c] == 1) {
-                    Serial.print(F("---"));
-                } else {
-                    Serial.print(F("   ")); // Spaces if no horizontal wall
-                }
-                if (c < MAZE_WIDTH - 1) {
-                    Serial.print(F(" ")); // Space between horizontal wall segments (aligns with vertical wall space)
-                }
-            }
-            Serial.println(); // End of horizontal wall row
-        }
-    }
-    Serial.println(F("------------------------------------"));
-}
-
-void getSimulatedSensorReadings(bool &left, bool &front, bool &right) {
-    left = false; front = false; right = false;
-    Serial.print("Enter detected walls (e.g., 'LFR' for Left, Front, Right, 'N' for None): ");
-    while (Serial.available() == 0) { delay(10); }
-    String input = Serial.readStringUntil('\n');
-    input.trim();
-    input.toUpperCase();
-    if (input.indexOf('L') != -1) left = true;
-    if (input.indexOf('F') != -1) front = true;
-    if (input.indexOf('R') != -1) right = true;
-    Serial.print("Simulated walls: ");
-    if (left) Serial.print("Left ");
-    if (front) Serial.print("Front ");
-    if (right) Serial.print("Right ");
-    if (!left && !front && !right) Serial.print("None");
-    Serial.println();
-}
-
 bool canMoveForward() {
     switch (currentDirection) {
         case NORTH:
@@ -271,77 +194,55 @@ bool canMoveForward() {
     return false;
 }
 
-void performSimulatedAction() {
-    Serial.print("Enter action (F=Forward, L=Turn Left, R=Turn Right): ");
-    while (Serial.available() == 0) { delay(10); } 
-    String input = Serial.readStringUntil('\n');
-    input.trim();
-    input.toUpperCase();
-    if (input == "F") {
-        if (canMoveForward()) {
-            currentPosition = getNextPosition(currentPosition, currentDirection);
-            Serial.println("Moved Forward.");
-        } else {
-            Serial.println("Cannot move forward, wall detected or boundary!");
-        }
-    } else if (input == "L") {
-        currentDirection = getNextDirection(false);
-        Serial.println("Turned Left.");
-    } else if (input == "R") {
-        currentDirection = getNextDirection(true);
-        Serial.println("Turned Right.");
-    } else {
-        Serial.println("Invalid action.");
-    }
-}
+
 
 // --- Wall Management Function ---
 void addWallsAtCurrentPosition(bool leftWall, bool frontWall, bool rightWall) {
     MouseDirection leftDir = (MouseDirection)((currentDirection + 3) % 4);
     MouseDirection frontDir = currentDirection;
     MouseDirection rightDir = (MouseDirection)((currentDirection + 1) % 4);
-    if (leftWall) {
-        if (leftDir == NORTH && currentPosition.y > 0) {
-            horizontalWalls[currentPosition.y-1][currentPosition.x] = 1;
-        } else if (leftDir == EAST && currentPosition.x < MAZE_WIDTH-1) {
-            verticalWalls[currentPosition.y][currentPosition.x] = 1;
-        } else if (leftDir == SOUTH && currentPosition.y < MAZE_HEIGHT-1) {
-            horizontalWalls[currentPosition.y][currentPosition.x] = 1;
-        } else if (leftDir == WEST && currentPosition.x > 0) {
-            verticalWalls[currentPosition.y][currentPosition.x-1] = 1;
-        }
+
+    // Handle Left Wall
+    if (leftDir == NORTH && currentPosition.y > 0) {
+        horizontalWalls[currentPosition.y-1][currentPosition.x] = leftWall ? 1 : 0;
+    } else if (leftDir == EAST && currentPosition.x < MAZE_WIDTH-1) {
+        verticalWalls[currentPosition.y][currentPosition.x] = leftWall ? 1 : 0;
+    } else if (leftDir == SOUTH && currentPosition.y < MAZE_HEIGHT-1) {
+        horizontalWalls[currentPosition.y][currentPosition.x] = leftWall ? 1 : 0;
+    } else if (leftDir == WEST && currentPosition.x > 0) {
+        verticalWalls[currentPosition.y][currentPosition.x-1] = leftWall ? 1 : 0;
     }
-    if (frontWall) {
-        if (frontDir == NORTH && currentPosition.y > 0) {
-            horizontalWalls[currentPosition.y-1][currentPosition.x] = 1;
-        } else if (frontDir == EAST && currentPosition.x < MAZE_WIDTH-1) {
-            verticalWalls[currentPosition.y][currentPosition.x] = 1;
-        } else if (frontDir == SOUTH && currentPosition.y < MAZE_HEIGHT-1) {
-            horizontalWalls[currentPosition.y][currentPosition.x] = 1;
-        } else if (frontDir == WEST && currentPosition.x > 0) {
-            verticalWalls[currentPosition.y][currentPosition.x-1] = 1;
-        }
+
+    // Handle Front Wall
+    if (frontDir == NORTH && currentPosition.y > 0) {
+        horizontalWalls[currentPosition.y-1][currentPosition.x] = frontWall ? 1 : 0;
+    } else if (frontDir == EAST && currentPosition.x < MAZE_WIDTH-1) {
+        verticalWalls[currentPosition.y][currentPosition.x] = frontWall ? 1 : 0;
+    } else if (frontDir == SOUTH && currentPosition.y < MAZE_HEIGHT-1) {
+        horizontalWalls[currentPosition.y][currentPosition.x] = frontWall ? 1 : 0;
+    } else if (frontDir == WEST && currentPosition.x > 0) {
+        verticalWalls[currentPosition.y][currentPosition.x-1] = frontWall ? 1 : 0;
     }
-    if (rightWall) {
-        if (rightDir == NORTH && currentPosition.y > 0) {
-            horizontalWalls[currentPosition.y-1][currentPosition.x] = 1;
-        } else if (rightDir == EAST && currentPosition.x < MAZE_WIDTH-1) {
-            verticalWalls[currentPosition.y][currentPosition.x] = 1;
-        } else if (rightDir == SOUTH && currentPosition.y < MAZE_HEIGHT-1) {
-            horizontalWalls[currentPosition.y][currentPosition.x] = 1;
-        } else if (rightDir == WEST && currentPosition.x > 0) {
-            verticalWalls[currentPosition.y][currentPosition.x-1] = 1;
-        }
+
+    // Handle Right Wall
+    if (rightDir == NORTH && currentPosition.y > 0) {
+        horizontalWalls[currentPosition.y-1][currentPosition.x] = rightWall ? 1 : 0;
+    } else if (rightDir == EAST && currentPosition.x < MAZE_WIDTH-1) {
+        verticalWalls[currentPosition.y][currentPosition.x] = rightWall ? 1 : 0;
+    } else if (rightDir == SOUTH && currentPosition.y < MAZE_HEIGHT-1) {
+        horizontalWalls[currentPosition.y][currentPosition.x] = rightWall ? 1 : 0;
+    } else if (rightDir == WEST && currentPosition.x > 0) {
+        verticalWalls[currentPosition.y][currentPosition.x-1] = rightWall ? 1 : 0;
     }
 } 
 // Static variables declared outside to save processing power
 static MousePosition forwardPos;
 static MousePosition rightPos;
 static MousePosition leftPos;
-static int8_t currentValue;
-static int8_t forwardValue;
-static int8_t rightValue;
-static int8_t leftValue;
+static uint8_t currentValue;
+static uint8_t forwardValue;
+static uint8_t rightValue;
+static uint8_t leftValue;
 
 // Helper function to check if position is within maze bounds
 bool isValidPosition(MousePosition pos) {
@@ -349,17 +250,25 @@ bool isValidPosition(MousePosition pos) {
            pos.y >= 0 && pos.y < MAZE_HEIGHT;
 }
 
-// Returns movement direction: 0=Forward, 1=Right, 2=Left, 3=Turn Around
+// Returns movement direction: 0=Forward, 1=Right, 2=Left, 3=Turn Around, 4=Stuck
 uint8_t getNextBestMove() {
     // Check if current position is valid
     if (currentPosition.x < 0 || currentPosition.x >= MAZE_WIDTH ||
         currentPosition.y < 0 || currentPosition.y >= MAZE_HEIGHT) {
-        return 0; // Default to forward if position invalid
+        return 4 ; // Default to stuck if position invalid
     }
 
     // Get current cell's value
     currentValue = manhattanDistances[currentPosition.y][currentPosition.x];
-    forwardValue = UNVISITED_DISTANCE;
+    
+    // If sensors detect walls in front, to the left, and to the right,
+    // AND the current cell is marked as unvisited, then turn around.
+    if (GlobalFrontWall && GlobalLeftWall && GlobalRightWall && (currentValue != UNVISITED_DISTANCE)) {
+        return 3; // Turn around
+    }
+
+    // Initialize potential move values
+    forwardValue = UNVISITED_DISTANCE; 
     rightValue = UNVISITED_DISTANCE;
     leftValue = UNVISITED_DISTANCE;
 
@@ -377,7 +286,7 @@ uint8_t getNextBestMove() {
 
     // Check right cell
     rightPos = currentPosition;
-    switch((currentDirection + 1) % 4) {
+    switch((MouseDirection)((currentDirection + 1) % 4)) {
         case NORTH: rightPos.y--; break;
         case EAST:  rightPos.x++; break;
         case SOUTH: rightPos.y++; break;
@@ -389,7 +298,7 @@ uint8_t getNextBestMove() {
 
     // Check left cell
     leftPos = currentPosition;
-    switch((currentDirection + 3) % 4) {
+    switch((MouseDirection)((currentDirection + 3) % 4)) {
         case NORTH: leftPos.y--; break;
         case EAST:  leftPos.x++; break;
         case SOUTH: leftPos.y++; break;
@@ -399,22 +308,50 @@ uint8_t getNextBestMove() {
         leftValue = manhattanDistances[leftPos.y][leftPos.x];
     }
 
-    // Prioritize movement based on flood fill values and wall presence
-    // First try forward if no wall and better/equal value
-    if (!GlobalFrontWall && forwardValue <= currentValue) {
-        return 0; // Go forward
+    // Check if we're stuck (all adjacent cells are unreachable)
+    if (forwardValue == UNVISITED_DISTANCE && 
+        rightValue == UNVISITED_DISTANCE && 
+        leftValue == UNVISITED_DISTANCE) {
+        return 4; // We're stuck!
     }
-    // Then try right if no wall and better/equal value
-    if (!GlobalRightWall && rightValue <= currentValue) {
-        return 1; // Turn right
+
+    // Determine the best move
+    uint8_t bestAction = 0; // Default to Turn Around
+    uint8_t minFoundValue = currentValue; // We are looking for a value strictly less than this.
+
+    // Priority 1: Forward
+    if (forwardValue < minFoundValue) {
+        minFoundValue = forwardValue;
+        bestAction = 0; // Go Forward
     }
-    // Then try left if no wall and better/equal value
-    if (!GlobalLeftWall && leftValue <= currentValue) {
-        return 2; // Turn left
+
+    // Priority 2: Right
+    if (rightValue < minFoundValue) {
+        minFoundValue = rightValue;
+        bestAction = 1; // Turn Right
+    } else if (rightValue == minFoundValue) {
+        if (bestAction != 0) { 
+            bestAction = 1; // Turn Right (preferred over Left or initial Turn Around)
+        }
+    }
+
+    // Priority 3: Left
+    if (leftValue < minFoundValue) {
+        minFoundValue = leftValue;
+        bestAction = 2; // Turn Left
+    } else if (leftValue == minFoundValue) {
+        if (bestAction != 0 && bestAction != 1) {
+            bestAction = 2; // Turn Left (preferred over initial Turn Around)
+        }
     }
     
-    // If no good options found, turn around
-    return 3;
+    // Final decision: if we haven't found a move that leads to a cell with
+    // a value strictly less than the current cell's value, then turn around.
+    if (minFoundValue >= currentValue) {
+        return 4; // Turn Around
+    }
+
+    return bestAction;
 }
 
 

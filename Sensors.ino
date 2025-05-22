@@ -23,9 +23,9 @@ int rawFront = 0;
 // --- Sensor Values Calibration ---
 const int wallThreshold = 400;
 const int wallThresholdFront = 940;
-const int wallThresholdFrontClose = 400;  // Changed from 400 to be closer to wallThresholdFront
-const int wallThresholdRight = 900;
-const int wallThresholdLeft = 900;
+const int wallThresholdFrontClose = 200;  // Changed from 400 to be closer to wallThresholdFront
+const int wallThresholdRight = 960;
+const int wallThresholdLeft = 960;
 
 // --- Sensor History Variables ---
 int currentLeft = 0;

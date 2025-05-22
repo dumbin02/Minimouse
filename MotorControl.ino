@@ -2,14 +2,13 @@
 
 // --- Motor Speed Control ---
 
-
 void moveF(){
   digitalWrite(motorA1, LOW);
   digitalWrite(motorA2, HIGH); // Motor A Forward
   digitalWrite(motorB1, LOW);
   digitalWrite(motorB2, HIGH);
-  analogWrite(pwmPinA, baseSpeed);  // Left wheel 
-  analogWrite(pwmPinB, baseSpeed+8);}      // Right wheel slightly faster
+  analogWrite(pwmPinA, baseSpeed+3);  // Left wheel 
+  analogWrite(pwmPinB, baseSpeed);}      // Right wheel slightly faster
 void moveB(){
   digitalWrite(motorA1, HIGH);
   digitalWrite(motorA2, LOW);  // Motor A Backward
@@ -37,8 +36,8 @@ void turnRight(){
   delay(timeTurnRight);}
 
 void turnLeftW(){
-  analogWrite(pwmPinA, 80);
-  analogWrite(pwmPinB, 252);
+  analogWrite(pwmPinA, 75);
+  analogWrite(pwmPinB, 240);
   digitalWrite(motorA1, LOW);
   digitalWrite(motorA2, HIGH); // Motor A Forward
   digitalWrite(motorB1, LOW);
@@ -47,7 +46,7 @@ void turnLeftW(){
 
 void turnRightW(){
   analogWrite(pwmPinA, 255);
-  analogWrite(pwmPinB, 87);
+  analogWrite(pwmPinB, 70);
   digitalWrite(motorA1, LOW);
   digitalWrite(motorA2, HIGH); // Motor A Forward
   digitalWrite(motorB1, LOW);

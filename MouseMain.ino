@@ -1,6 +1,10 @@
 #include "MouseMain.h"
 #include <Adafruit_NeoPixel.h>
 
+// Definition of Global Wall Flags
+bool GlobalLeftWall = true; // Initialize to a default state (e.g., no wall)
+bool GlobalFrontWall = false;
+bool GlobalRightWall = true;
 
 // --- Configuration Notes ---
 // LED Configuration is in LED-Control.ino
@@ -12,29 +16,24 @@
 
 
 void setup(){
-  // --- Original Setup (Commented out for Simulation) ---
-  stop();
-  initializeMazeAndMouse(); // This will be called by simulation setup
-  addWallsAtCurrentPosition(GlobalLeftWall, GlobalFrontWall, GlobalRightWall); 
-  runFloodFill();           // Initial flood fill, from MazeState.ino
   pinSETUP();
-  delay(3000);        //Delay para que no avanze de inmediato
-  initSensors();
+  delay(1000);
+  //cycleLEDColor();
+  initializeMazeAndMouse(); // Initialize maze data structures and mouse state
+  runFloodFill(); // Initial flood fill before first move decision
+  addWallsAtCurrentPosition(GlobalLeftWall, GlobalFrontWall, GlobalRightWall);
+  runFloodFill();
   moveF();
   delay(initialStepInterval);
-  colorLED(255,0,0);
-  lastSquareTime = millis();
-  // --- Simulation Setup ---
-  //Serial.begin(115200);  // Initialize Serial for debugging and simulation
-  //while (!Serial) { delay(10); } // Wait for Serial to connect
-  //Serial.println("Micromouse Maze State Simulator Initialized (from MouseMain.ino).");
-  //Serial.println(F("--- Initial State (Before any move) ---"));
-  //printManhattanDistances(); // From MazeState.ino
+  //cycleLEDColor();
+  previousTimeMS = millis();
 
-  
 }
 
 void loop(){
   FloodMove_MainLogic();
-  
+
+
 }
+
+
